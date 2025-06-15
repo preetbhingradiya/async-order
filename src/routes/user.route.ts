@@ -4,7 +4,7 @@ import { UserServiceImpl } from "../repository/UserServiceImpl";
 import { plainToInstance } from "class-transformer";
 import { validationError } from "../util/errorHandler";
 import {CreateUserDTO, LoginDto} from "../dto/index.dto"
-
+import { AuthenticatedRequest, authenticationToken } from "../middleware/auth.middleware";
 export const userRouter = express.Router();
 
 const userService = new UserServiceImpl();
@@ -21,7 +21,7 @@ userRouter.post("/register", async (req, res) => {
   }
 
   const response = await controller.createUser(userDto);
-  res.status(201).json(response);
+  res.status(response.statusCode).json(response);
 });
 
 userRouter.post("/login", async (req, res) => {
@@ -35,5 +35,16 @@ userRouter.post("/login", async (req, res) => {
   }
 
   const response = await controller.login(loginDto);
-  res.status(201).json(response);
+  res.status(response.statusCode).json(response);
 });
+
+userRouter.use(authenticationToken);
+userRouter.get("/profile", async (req:AuthenticatedRequest, res)=>{
+  const response = await controller.getUserProfile(req.user);
+  res.status(response.statusCode).json(response)
+})
+
+userRouter.post("/logout", async (req : AuthenticatedRequest, res)=>{
+  const response = await controller.logoutUser(req.user);
+  res.status(response.statusCode).json(response)
+})

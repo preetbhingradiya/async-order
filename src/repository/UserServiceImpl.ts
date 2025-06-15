@@ -1,21 +1,22 @@
 import prisma from "../config/prisma";
-import {
-  CreateUserDTO,
-  LoginDto,
-  LoginResponse,
-  UserResponse,
-} from "../dto/index.dto";
+import { CreateUserDTO, LoginDto, TokenDTO } from "../dto/index.dto";
 import bcrypt from "bcrypt";
 import { IUserService } from "../service/user.service";
 import { generateAccessToken, generateRefreshToken } from "../util/jwtToken";
 import { v4 as uuidv4 } from "uuid";
+import { ErrorException } from "../response/errorException";
+import {
+  GetUserResponse,
+  LoginResponse,
+  Response,
+} from "../response/userResponse";
 
 export class UserServiceImpl implements IUserService {
-  async createUser(userDto: CreateUserDTO): Promise<UserResponse> {
+  async createUser(userDto: CreateUserDTO): Promise<Response | ErrorException> {
     let { name, email, password } = userDto;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return new UserResponse("User already exists", 400);
+    if (existingUser) return new ErrorException(400, "User already exists");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -27,15 +28,15 @@ export class UserServiceImpl implements IUserService {
       },
     });
 
-    return new UserResponse("User created successfully", 200);
+    return new Response("User created successfully", 200);
   }
 
-  async loginUser(logiDto: LoginDto): Promise<LoginResponse> {
+  async loginUser(logiDto: LoginDto): Promise<LoginResponse | ErrorException> {
     try {
       let { email, password } = logiDto;
 
       const existingUser = await prisma.user.findUnique({ where: { email } });
-      if (!existingUser) return new LoginResponse("User Not found", 404);
+      if (!existingUser) return new ErrorException(404, "User not found");
 
       const isPasswordValid = await bcrypt.compare(
         password,
@@ -43,21 +44,21 @@ export class UserServiceImpl implements IUserService {
       );
 
       if (!isPasswordValid)
-        return new LoginResponse(
-          "Login credentials are incorrect. Please check email or password.",
-          401
+        return new ErrorException(
+          401,
+          "Login credentials are incorrect. Please check email or password."
         );
 
       const jti = uuidv4();
 
-      const payload = { userId: existingUser.id, jti };
+      const payload = { userId: existingUser.id, jti: jti };
       const accessToken = generateAccessToken(payload);
       const refreshToken = generateRefreshToken(payload);
 
       await prisma.token.create({
         data: {
-            userId : existingUser.id,
-            jti,
+          userId: existingUser.id,
+          jti,
         },
       });
 
@@ -68,7 +69,38 @@ export class UserServiceImpl implements IUserService {
         refreshToken
       );
     } catch (error) {
-      throw new LoginResponse(error.message, 500);
+      throw new ErrorException(500, error.message);
+    }
+  }
+
+  async getUserProfile(user: TokenDTO): Promise<GetUserResponse | ErrorException> {
+    try {
+      let { userId } = user;
+
+      let userData = await prisma.user.findUnique({ where: { id: userId } });
+
+      if (!userData) return new ErrorException(404, "User not found");
+
+      return new GetUserResponse(200, "Fetch user data", userData);
+    } catch (error) {
+      throw new ErrorException(500, error.message);
+    }
+  }
+
+  async logoutUser(token: any): Promise<Response> {
+    try {
+      await prisma.token.updateMany({
+        where: {
+          id: token.id,
+        },
+        data: {
+          isRevoked: true,
+        },
+      });
+
+      return new Response("User logout sucessfully", 200);
+    } catch (error) {
+      throw new ErrorException(500, error.message);
     }
   }
 }

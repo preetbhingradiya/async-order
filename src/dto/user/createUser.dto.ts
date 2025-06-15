@@ -10,14 +10,3 @@ export class CreateUserDTO {
   @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
   password: string;
 }
-
-
-export class UserResponse{
-  message : string;
-  statusCode : number;
-
-  constructor(message :string, statusCode : number){
-    this.message = message;
-    this.statusCode = statusCode;
-  }
-}

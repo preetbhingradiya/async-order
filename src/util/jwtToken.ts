@@ -1,12 +1,13 @@
 import jwt, { SignOptions } from "jsonwebtoken";
 import type { StringValue } from "ms";
-import { LoginResponse } from "../dto/index.dto";
+import { AccessToken, AccessTokenExpire, RefreshToken, RefreshTokenExpire } from "../constant";
+import { ErrorException } from "../response/errorException";
 
 export function generateAccessToken(payload: object): string {
-  const secret = process.env.ACCESS_TOKEN_SECRET;
-  const expiresIn = (process.env.ACCESS_TOKEN_EXPIRE || "1d") as StringValue;
+  const secret = AccessToken;
+  const expiresIn = (AccessTokenExpire) as StringValue;
 
-  if (!secret) throw new LoginResponse("Missing JWT_ACCESS_SECRET", 404);
+  if (!secret) throw new ErrorException(404, "Missing JWT_ACCESS_SECRET");
 
   const options: SignOptions = {
     expiresIn,
@@ -16,10 +17,10 @@ export function generateAccessToken(payload: object): string {
 }
 
 export function generateRefreshToken(payload: object): string {
-  const secret = process.env.REFRESH_TOKEN_SECRET;
-  const expiresIn = (process.env.REFRESH_TOKEN_EXPIRE || "7d") as StringValue;
+  const secret = RefreshToken;
+  const expiresIn = (RefreshTokenExpire) as StringValue;
 
-  if (!secret) throw new LoginResponse("Missing JWT_REFRESH_SECRET", 404);
+  if (!secret) throw new ErrorException(404,"Missing JWT_REFRESH_SECRET");
 
   const options: SignOptions = {
     expiresIn,
