@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  //these relation fields:
+  tokens     Token[]
+  orders     Order[]
+}
+
+model Token {
+  id          String @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  jti         String   @default(uuid())
+  isRevoked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Order {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  productName String
+  quantity    Int
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+}
+
+model OutboxMessage {
+  id        String   @id @default(uuid())
+  eventType String
+  payload   Json
+  sent      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model InboxMessage {
+  id        String   @id @default(uuid())
+  eventType String
+  payload   Json
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
