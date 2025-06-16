@@ -1,8 +1,9 @@
 import { validate } from "class-validator";
 
-export const validationError = async (userDto) =>{
-  const errors = await validate(userDto);
-
+export const validationError = async (dto) =>{
+  const errors = await validate(dto);
+  console.log(errors);
+  
   if (errors.length > 0) {
     return ({
       message: "Validation failed",

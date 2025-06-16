@@ -49,14 +49,12 @@ model OutboxMessage {
   id        String   @id @default(uuid())
   eventType String
   payload   Json
-  sent      Boolean  @default(false)
+  processed Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
 model InboxMessage {
-  id        String   @id @default(uuid())
-  eventType String
-  payload   Json
-  processed Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  messageId   String
+  processedAt DateTime @default(now())
 }
