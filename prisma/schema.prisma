@@ -43,6 +43,8 @@ model Order {
   quantity    Int
   status      String   @default("PENDING")
   createdAt   DateTime @default(now())
+
+  inboxMessages  InboxMessage[]
 }
 
 model OutboxMessage {
@@ -55,6 +57,10 @@ model OutboxMessage {
 
 model InboxMessage {
   id          String   @id @default(uuid())
-  messageId   String
-  processedAt DateTime @default(now())
+  orderId     String
+  order       Order    @relation(fields : [orderId], references : [id])
+  eventType   String
+  receivedAt  DateTime
+  processed   Boolean  @default(false)
+  processedAt DateTime?
 }
