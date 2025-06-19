@@ -6,7 +6,7 @@ import { validationError } from "../../util/errorHandler";
 import { OrderController } from "../../controller/product/order.controller";
 import { AuthenticatedRequest, authenticationToken } from "../../middleware/auth.middleware";
 import { relayOutbox } from "../../repository/product/relayOutbox";
-import { InboxEvent } from "../../repository/product/InboxEvent";
+import { inBoxEvent } from "../../repository/product/inbox";
 export const orderRouter = express.Router();
 
 const orderService = new OrderServiceImpl();
@@ -28,5 +28,4 @@ orderRouter.post("/create-order", async (req:AuthenticatedRequest, res) => {
 });
 
 setInterval(relayOutbox, 5000);  // poll every 5 seconds
-
-setInterval(InboxEvent, 7000)
+inBoxEvent()

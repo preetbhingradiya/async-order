@@ -13,6 +13,11 @@ export async function relayOutbox() {
     take: 10,
   });
 
+  if(!outboxItems){
+    console.log("Not Found any...")
+    return
+  }
+
   for (const item of outboxItems) {
     channel.sendToQueue(
       "order_events",
@@ -35,6 +40,4 @@ export async function relayOutbox() {
 
   await channel.close();
   await connection.close();
-
-  // consume();
 }

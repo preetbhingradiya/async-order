@@ -22,17 +22,17 @@ model User {
   createdAt DateTime @default(now())
 
   //these relation fields:
-  tokens     Token[]
-  orders     Order[]
+  tokens Token[]
+  orders Order[]
 }
 
 model Token {
-  id          String @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  jti         String   @default(uuid())
-  isRevoked   Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  jti       String   @default(uuid())
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 model Order {
@@ -43,8 +43,6 @@ model Order {
   quantity    Int
   status      String   @default("PENDING")
   createdAt   DateTime @default(now())
-
-  inboxMessages  InboxMessage[]
 }
 
 model OutboxMessage {
@@ -57,8 +55,7 @@ model OutboxMessage {
 
 model InboxMessage {
   id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields : [orderId], references : [id])
+  orderId     String   @unique 
   eventType   String
   receivedAt  DateTime
   processed   Boolean  @default(false)
