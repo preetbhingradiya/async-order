@@ -19,7 +19,7 @@ export class CustomBloomFilter {
       const index = this.getHash(email, i) % this.M;
       if (this.bitArray[index] === 0) {
         this.bitArray[index] = 1;
-        this.setBits++; // ✅ increment only if changing from 0 → 1
+        this.setBits++; // increment only if changing from 0 → 1
       }
     }
   }

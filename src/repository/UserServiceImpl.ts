@@ -17,7 +17,6 @@ export class UserServiceImpl implements IUserService {
   async createUser(userDto: CreateUserDTO): Promise<Response | ErrorException> {
     let { name, email, password } = userDto;
 
-    console.log(bloom.mightContain(email));
     if (!bloom.mightContain(email)) {
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) return new ErrorException(400, "User already exists");
