@@ -10,13 +10,21 @@ import {
   LoginResponse,
   Response,
 } from "../response/userResponse";
+import { CustomBloomFilter } from "../utils/CustomBloomFilter";
+const bloom = new CustomBloomFilter(1000, 3);
 
 export class UserServiceImpl implements IUserService {
   async createUser(userDto: CreateUserDTO): Promise<Response | ErrorException> {
     let { name, email, password } = userDto;
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return new ErrorException(400, "User already exists");
+    console.log(bloom.mightContain(email));
+    if (!bloom.mightContain(email)) {
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) return new ErrorException(400, "User already exists");
+    } else {
+      return new ErrorException(400, "User already exists filter by Bloom");
+    }
+    bloom.add(email);
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -73,7 +81,9 @@ export class UserServiceImpl implements IUserService {
     }
   }
 
-  async getUserProfile(user: TokenDTO): Promise<GetUserResponse | ErrorException> {
+  async getUserProfile(
+    user: TokenDTO
+  ): Promise<GetUserResponse | ErrorException> {
     try {
       let { userId } = user;
 
